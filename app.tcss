@@ -1,0 +1,15 @@
+#title {
+    height: 2;
+    align: center top;
+    text-style: bold;
+}
+
+#ask-for-entry {
+    padding-top: 1;
+    padding-bottom: 1;
+    text-style: bold;
+}
+
+#username-entry {
+    height: 3;
+}

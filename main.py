@@ -51,15 +51,32 @@ class LettrboxdTUI (App):
         feed_url = f"https://letterboxd.com/{username}/rss/"
         feed = feedparser.parse(feed_url)
 
+        data: list[dict] = []
+
         for entry in feed.entries:
-            print("Title:", entry.get("title"))
-            print("Link:", entry.get("link"))
-            print("Published:", entry.get("published"))
-            print("Summary:", entry.get("summary"))
-            print("-" * 40)
+            info = str(entry.get("title"))  # "Maestro, 2023 - ★½"
+            first = info.split(",")
+            name = first[0]
+            second = first[1].split("-")
+            date = int(second[0].strip())
+            stars_as_text = second[1].strip()
+            total = 0
+            for char in stars_as_text:
+                if char == "★":
+                    total += 1
+                elif char == "½":
+                    total += 0.5
+
+            data.append({
+                "name" : name,
+                "date": date,
+                "rating": total
+            })
 
 
-        decision = await self.push_screen_wait(Preference("a", "b"))
+
+        for film in data:
+            decision = await self.push_screen_wait(Preference("What you just watched", film["name"]))
         await self.action_quit()
 
 

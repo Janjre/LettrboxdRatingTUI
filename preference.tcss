@@ -1,0 +1,21 @@
+.option-text {
+    height: 100%;
+    width: 100%;
+    grid-gutter: 1;
+}
+
+.option {
+    grid-gutter: 1;
+}
+
+
+#film-a-text {
+    background: #0b4171;
+}
+
+#film-b-text {
+    background: #ae0001;
+}
+
+
+

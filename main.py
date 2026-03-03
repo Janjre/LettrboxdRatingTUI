@@ -1,6 +1,6 @@
 ﻿import feedparser
 from textual.app import App, ComposeResult
-from textual.containers import Horizontal, Vertical, Center
+from textual.containers import Horizontal, Vertical, Center, Container
 from textual.screen import Screen
 from textual.widgets import Static, Header, TextArea, Button
 import textual.events as events
@@ -31,10 +31,10 @@ class Preference (Screen[str]):
 
     def compose(self) -> ComposeResult:
         yield Header()
-        yield Center(Static("Which film do you prefer: "))
+        yield Static("Which film do you prefer:", id = "title")
         yield Horizontal(
-            Button(self.Film1, id = "film-a",classes="option"),
-            Button(self.Film2, id = "film-b",classes="option")
+            Container(Button(self.Film1, id = "film-a-text",classes="option-text"),classes="option",id="film-a"),
+            Container(Button(self.Film2, id = "film-b-text",classes="option-text"),classes="option",id="film-b")
         )
 
 class LettrboxdTUI (App):
@@ -47,23 +47,22 @@ class LettrboxdTUI (App):
     @work
     async def on_mount(self) -> None:
         username = await self.push_screen_wait(StartScreen())
+
+        feed_url = f"https://letterboxd.com/{username}/rss/"
+        feed = feedparser.parse(feed_url)
+
+        for entry in feed.entries:
+            print("Title:", entry.get("title"))
+            print("Link:", entry.get("link"))
+            print("Published:", entry.get("published"))
+            print("Summary:", entry.get("summary"))
+            print("-" * 40)
+
+
         decision = await self.push_screen_wait(Preference("a", "b"))
         await self.action_quit()
 
 
-    # feed_url = "https://letterboxd.com/janjre1/rss/"
-    # feed = feedparser.parse(feed_url)
-    #
-    # print("Feed title:", feed.feed.get("title"))
-    # print("Link:", feed.feed.get("link"))
-    # print()
-    #
-    # for entry in feed.entries:
-    #     print("Title:", entry.get("title"))
-    #     print("Link:", entry.get("link"))
-    #     print("Published:", entry.get("published"))
-    #     print("Summary:", entry.get("summary"))
-    #     print("-" * 40)
 
 app = LettrboxdTUI()
 app.run()

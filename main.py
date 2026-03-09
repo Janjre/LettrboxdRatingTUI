@@ -1,4 +1,7 @@
-﻿import feedparser
+﻿import math
+from statistics import variance
+
+import feedparser
 from textual.app import App, ComposeResult
 from textual.containers import Horizontal, Vertical, Center, Container
 from textual.screen import Screen
@@ -9,9 +12,10 @@ from textual import on, work
 class TextConsole(TextArea):
     def _on_key(self, event: events.Key) -> None:
         if event.key == "enter":
+            event.stop()
             self.screen.dismiss(self.text)
 
-            event.prevent_default()
+
 
 class StartScreen (Screen[str]):
     def compose(self) -> ComposeResult:
@@ -33,9 +37,33 @@ class Preference (Screen[str]):
         yield Header()
         yield Static("Which film do you prefer:", id = "title")
         yield Horizontal(
-            Container(Button(self.Film1, id = "film-a-text",classes="option-text"),classes="option",id="film-a"),
-            Container(Button(self.Film2, id = "film-b-text",classes="option-text"),classes="option",id="film-b")
+            Container(Button(self.Film1, id = "film-a-text",classes="option-text",variant = "success"),classes="option"),
+            # Container(Button(self.Film1, id = "neutral-text",classes="option-text"),classes="option",id="neutral"),
+            Container(Button(self.Film2, id = "film-b-text",classes="option-text",variant = "error"),classes="option",id="film-b")
         )
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        self.app.log("A button was pressed with id " + event.button.id)
+        if event.button.id == "film-a-text":
+            self.screen.dismiss(self.Film1)
+        if event.button.id == "film-b-text":
+            self.screen.dismiss(self.Film2)
+
+class ResultScreen (Screen):
+    CSS_PATH = "result.tcss"
+    def __init__(self, rating: float):
+        self.Rating = round(rating * 2) / 2
+        super().__init__()
+
+    def compose(self) -> ComposeResult:
+        whole_stars = math.floor(self.Rating)
+        half_star = self.Rating % 2 == 0.5
+        text = "★" * whole_stars
+        if half_star:
+            text += "½"
+
+        yield Static(f"You should rate this film: {text}")
+
+
 
 class LettrboxdTUI (App):
 
@@ -74,9 +102,38 @@ class LettrboxdTUI (App):
             })
 
 
+        max_rating = 5
+        min_rating = 0
 
-        for film in data:
-            decision = await self.push_screen_wait(Preference("What you just watched", film["name"]))
+        active_films = data.copy()
+        keep_going = True
+
+        score = -1
+
+        while keep_going:
+            decision = await self.push_screen_wait(Preference("What you just watched", active_films[0]["name"]))
+            if decision == "What you just watched":
+                min_rating = active_films[0]["rating"]
+            else:
+                max_rating =active_films[0]["rating"]
+
+            self.app.log(f"min_rating: {min_rating}, max_rating: {max_rating}")
+
+
+            active_films.pop(0)
+
+            self.app.log(f"active films is {len(active_films)} long before filter")
+
+            active_films = list(filter(lambda x: min_rating < x["rating"] < max_rating, active_films))
+
+            self.app.log(f"active films is now {len(active_films)} long after filter")
+
+            if len(active_films) == 0 or max_rating - min_rating < 1:
+                score =  (max_rating + min_rating) / 2
+                break
+
+        await self.push_screen_wait(ResultScreen(score))
+
         await self.action_quit()
 
 

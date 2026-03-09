@@ -56,12 +56,12 @@ class Preference (Screen[str]):
 class ResultScreen (Screen):
     CSS_PATH = "result.tcss"
     def __init__(self, rating: float):
-        self.Rating = round(rating * 2) / 2
+        self.Rating = round(rating * 2) / 2 # round to .5
         super().__init__()
 
     def compose(self) -> ComposeResult:
         whole_stars = math.floor(self.Rating)
-        half_star = self.Rating % 2 == 0.5
+        half_star = self.Rating % 1 == 0.5
         text = "★" * whole_stars
         if half_star:
             text += "½"
@@ -120,6 +120,7 @@ class LettrboxdTUI (App):
 
             if decision == "neutral":
                 score = active_films[0]["rating"]
+                self.app.log(score)
                 await self.push_screen_wait(ResultScreen(score))
 
                 await self.action_quit()

@@ -1,2 +1,3 @@
+textual-serve
 feedparser~=6.0.12
 textual~=8.0.1

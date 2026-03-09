@@ -36,10 +36,13 @@ class Preference (Screen[str]):
     def compose(self) -> ComposeResult:
         yield Header()
         yield Static("Which film do you prefer:", id = "title")
-        yield Horizontal(
-            Container(Button(self.Film1, id = "film-a-text",classes="option-text",variant = "success"),classes="option"),
-            # Container(Button(self.Film1, id = "neutral-text",classes="option-text"),classes="option",id="neutral"),
-            Container(Button(self.Film2, id = "film-b-text",classes="option-text",variant = "error"),classes="option",id="film-b")
+
+        yield Vertical(
+            Horizontal(
+                Container(Button(self.Film1, id = "film-a-text",classes="option-text",variant = "success"),classes="option"),
+                Container(Button(self.Film2, id = "film-b-text",classes="option-text",variant = "error"),classes="option",id="film-b")
+            ,id = "top"),
+            Container(Button("They are both equally good", id = "neutral-text",classes="option-text"),classes="option",id="bottom")
         )
     def on_button_pressed(self, event: Button.Pressed) -> None:
         self.app.log("A button was pressed with id " + event.button.id)
@@ -47,6 +50,8 @@ class Preference (Screen[str]):
             self.screen.dismiss(self.Film1)
         if event.button.id == "film-b-text":
             self.screen.dismiss(self.Film2)
+        if event.button.id == "neutral-text":
+            self.screen.dismiss("neutral")
 
 class ResultScreen (Screen):
     CSS_PATH = "result.tcss"
@@ -112,6 +117,13 @@ class LettrboxdTUI (App):
 
         while keep_going:
             decision = await self.push_screen_wait(Preference("What you just watched", active_films[0]["name"]))
+
+            if decision == "neutral":
+                score = active_films[0]["rating"]
+                await self.push_screen_wait(ResultScreen(score))
+
+                await self.action_quit()
+                break
             if decision == "What you just watched":
                 min_rating = active_films[0]["rating"]
             else:

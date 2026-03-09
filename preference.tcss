@@ -8,13 +8,12 @@
     grid-gutter: 1;
 }
 
-
-#film-a-text {
-    background: #0b4171;
+#top {
+    height: 66%;
 }
 
-#film-b-text {
-    background: #ae0001;
+#bottom {
+    height: 34%;
 }
 
 
